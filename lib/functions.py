@@ -1,3 +1,5 @@
+# coding: utf8
+
 """
 Functions used for RI Calculation
 """
