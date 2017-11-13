@@ -9,7 +9,6 @@ from numpy import inf
 
 def standardize_inventory(lci, db_geometric_mean):
     """
-gdgfdvcxcds
 
     :param DataFrame lci:
     :param DataFrame db_geometric_mean:
