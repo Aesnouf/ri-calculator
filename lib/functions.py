@@ -31,34 +31,32 @@ def standardize_inventory(lci, db_geometric_mean):
 
 def clean_method(method_standardized):
     """
-    This function format method.... just v is a copy of meth but would be modify
-    v_initial is an other copy of method
-    cols regroups the name of categories. Some loop will be perform using this list
-    If a method is empty, this function will delete it
-    Last step is to order category depending on the number
+    This function cleans a methods.
+
+    Removes empty categories (constituted by 0 only) from the method and sort them by number of non zero values.
 
     :param method_standardized:
-    :return:
+    :return: Cleaned method
+    :rtype DataFrame
     """
-    cols = method_standardized.columns.tolist()
+
     method_standardized = method_standardized.fillna(value=0)
 
-    # If a method is empty, this function will delete it
-    for column in cols:
-        if np.linalg.norm(method_standardized[column]) == 0:
-            method_standardized.drop(column, inplace=True, axis=1)
+    # If a category is empty, deletes it from the method
+    categories = method_standardized.columns.tolist()
+    for category in categories:
+        if np.linalg.norm(method_standardized[category]) == 0:
+            method_standardized.drop(category, inplace=True, axis=1)
 
     # Now it is just a sorting step with the number of CF per category. This will make get more proper orthogonal
     # projection for the next step
-
     just_ones = method_standardized.copy(deep=True)
     just_ones[just_ones != 0] = 1
     sum_ones = just_ones.sum(axis=0)
     sum_ones.sort_values(ascending=True, inplace=True)
     method_standardized_cleaned = method_standardized[sum_ones.index]
-    cols = method_standardized_cleaned.columns.tolist()
 
-    return method_standardized_cleaned, cols
+    return method_standardized_cleaned
 
 
 def orthonormation_meth(method_standardized_cleaned, cols):
