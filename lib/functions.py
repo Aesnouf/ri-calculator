@@ -35,7 +35,7 @@ def clean_method(method_standardized):
 
     Removes empty categories (constituted by 0 only) from the method and sort them by number of non zero values.
 
-    :param method_standardized:
+    :param DataFrame method_standardized:
     :return: Cleaned method
     :rtype DataFrame
     """
@@ -59,60 +59,52 @@ def clean_method(method_standardized):
     return method_standardized_cleaned
 
 
-def orthonormation_meth(method_standardized_cleaned, cols):
+def orthonormation_method(method_standardized_cleaned):
     """
-    orthonormation du set de vecteurs selon l'ordre implementé
+    Orthonormation of the categories according to the order resulting of clean_method()
 
-    this function use a method as entry and a list of the name (it is just the name of the columns)
-    a loop on column names is performed. Each column is transformed by supress any composant belonging to
+    A loop on categories is performed. Each category is transformed by supressing any composant belonging to
     each previous category in the loop. I.E each category is orthogonized related to the other categories.
     Categories are also normalised (norme = 1).
 
-    :param method_standardized_cleaned:
-    :param cols:
-    :return:
+    :param DataFrame method_standardized_cleaned:
+        Standardized method sorted and cleaned of its empty categories with clean_method()
+    :return: Orthonormed method
+    :rtype DataFrame
     """
-    deleted = 0
-    # normation of the first column
-    method_standardized_cleaned[cols[0]] = method_standardized_cleaned[cols[0]] / np.linalg.norm(
-        method_standardized_cleaned[cols[0]])
+    categories = method_standardized_cleaned.columns.tolist()
 
-    # j is a cursor that will pass every columns (category). The loop is stop by the total number of category in the
+    # normation of the first category
+    method_standardized_cleaned[categories[0]] = method_standardized_cleaned[categories[0]] / np.linalg.norm(
+        method_standardized_cleaned[categories[0]])
+
+    # normation of every following categories in a loop
+    # j is a cursor that will pass every category (columns). The loop is stoped by the total number of category in the
     # method
     j = 0
-    while j < method_standardized_cleaned.shape[1]:
+    while j < len(categories):
         # i is a cursor that will pass every columns from 0 to j (j not included)
-        # f is a cursor that is equal to i if column norm is not equal to zero
+        # loop is a boolean used to end the next loop
         i = 0
-        f = 0
-        while i < j and i == f:
-            # calcul of the orthogonal projection of j on each i and substraction of the projection from j
-            method_standardized_cleaned[cols[j]] = method_standardized_cleaned[cols[j]] - method_standardized_cleaned[
-                                                                                              cols[i]] * (
-                                                                                              sum(
-                                                                                                  method_standardized_cleaned[
-                                                                                                      cols[i]] *
-                                                                                                  method_standardized_cleaned[
-                                                                                                      cols[j]]) / sum(
-                                                                                                  method_standardized_cleaned[
-                                                                                                      cols[i]] *
-                                                                                                  method_standardized_cleaned[
-                                                                                                      cols[i]]))
-            if np.linalg.norm(method_standardized_cleaned[cols[j]]) == 0:
+        while i < j:
+            # calculate the orthogonal projection of j on each i and substraction of the projection from j
+            method_standardized_cleaned[categories[j]] = \
+                method_standardized_cleaned[categories[j]] - method_standardized_cleaned[categories[i]] * (
+                sum(method_standardized_cleaned[categories[i]] * method_standardized_cleaned[categories[j]]) / sum(
+                    method_standardized_cleaned[categories[i]] * method_standardized_cleaned[categories[i]]))
+            if np.linalg.norm(method_standardized_cleaned[categories[j]]) == 0:
                 # if after the projection, the j columns became null, it is droped (i.e it is linearly dependant with
                 # the other columns)
                 method_standardized_cleaned.drop(method_standardized_cleaned.columns[j], inplace=True, axis=1)
-                cols.remove(cols[j])
+                categories.remove(categories[j])
 
-                # then f become different of i and the while loop ends
-                f += 1
-                deleted += 1
+                # then the inner while loop ends
+                break
             else:
-                # the non null columns j is normed and the second while loop keeps going
-                method_standardized_cleaned[cols[j]] = method_standardized_cleaned[cols[j]] / (
-                    np.linalg.norm(method_standardized_cleaned[cols[j]]))
+                # the non null columns j is normed and the inner while loop keeps going
+                method_standardized_cleaned[categories[j]] = method_standardized_cleaned[categories[j]] / (
+                    np.linalg.norm(method_standardized_cleaned[categories[j]]))
                 i += 1
-                f += 1
         j += 1
 
     return method_standardized_cleaned
@@ -165,7 +157,7 @@ def calculate_representativeness_index_per_method(method_standardized, method, e
     (method_standardized_cleaned, cols) = clean_method(method_standardized)
 
     # !!! the next step moodify method_standardized_cleaned !!!
-    method_standardized_ortho = orthonormation_meth(method_standardized_cleaned, cols)
+    method_standardized_ortho = orthonormation_method(method_standardized_cleaned)
 
     coeff, residual, rank, singular_values = np.linalg.lstsq(np.array(method_standardized_ortho.iloc[:, :]),
                                                              np.array(emission_normal))  # .iloc[:,:]))
