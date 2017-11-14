@@ -2,6 +2,8 @@
 Functions used for RI Calculation
 """
 
+# TODO: Complete docstrings with explaination on what the functions does and how it must be used. Not with how it does it nor how it is implemented
+
 import scipy as np
 import pandas as pd
 from numpy import inf
@@ -90,8 +92,8 @@ def orthonormation_method(method_standardized_cleaned):
             # calculate the orthogonal projection of j on each i and substraction of the projection from j
             method_standardized_cleaned[categories[j]] = \
                 method_standardized_cleaned[categories[j]] - method_standardized_cleaned[categories[i]] * (
-                sum(method_standardized_cleaned[categories[i]] * method_standardized_cleaned[categories[j]]) / sum(
-                    method_standardized_cleaned[categories[i]] * method_standardized_cleaned[categories[i]]))
+                    sum(method_standardized_cleaned[categories[i]] * method_standardized_cleaned[categories[j]]) / sum(
+                        method_standardized_cleaned[categories[i]] * method_standardized_cleaned[categories[i]]))
             if np.linalg.norm(method_standardized_cleaned[categories[j]]) == 0:
                 # if after the projection, the j columns became null, it is droped (i.e it is linearly dependant with
                 # the other columns)
@@ -113,11 +115,12 @@ def orthonormation_method(method_standardized_cleaned):
 def calculate_representativeness_index_per_category(method_standardized, lci_standardized):
     """
 
-    :param method_standardized:
-    :param lci_standardized:
+    :param DataFrame method_standardized:
+    :param DataFrame lci_standardized:
     :return:
     """
 
+    # Checking substance flows (indexes) are the same between lci and method
     if all(method_standardized.index == lci_standardized.index):
         representativeness_index_category = pd.DataFrame(index=method_standardized.columns,
                                                          columns=lci_standardized.columns)
@@ -126,43 +129,46 @@ def calculate_representativeness_index_per_category(method_standardized, lci_sta
             representativeness_index_category.loc[column, :] = np.cos(np.real(np.arcsin(np.sqrt(residuals)))).T
 
     else:
-        raise Exception('substance flows do not match')
+        raise Exception('Substance flows do not match between method and lci.')
 
     return representativeness_index_category
 
 
-def calculate_representativeness_index_per_method(method_standardized, method, emission_normal, cos_method):
+def calculate_representativeness_index_per_method(method_standardized, method_name, emission_normal, cos_method):
     """
-    method_standardized is a dataframe with only one method agregated composed of several columns representing
-    impact category normalised
-    'method' is just a string naming the method
-    emission_normal is the dataframe of all LCI
-    cos_meth is a dataframe with method as row and process as columns. for each process it give the cosinus between
-    the LCI and its projected on the environmental basis
+    Calculates a Representativeness Index per category for a given method and LCI
 
-    df_to_study just reorganize impact category by ordering them with a ascending number of characterisation factor
-    and drop method if they are empty (like in the case of studying a piece of the emission)
+    clean_method() just reorganizes impact categories by ordering them by ascending number of characterisation factor
+    and drops methods if they are empty (as in the case of studying a piece of the emission)
 
-    orthonomation_meth transforme impact categories to get them orthonormised
-    find_cos_residual used linalg.lstsq to get euclidian distance between LCI and the most accurate modelisation point
-    in the environmental basis. This euclidian distance is then used to get the angle (just some trigonometric trick)
+    orthonomation_meth() transforms impact categories to get them orthonormed.
+    Then it uses linalg.lstsq() to get euclidian distance between LCI and the most accurate modelisation point
+    in the environmental basis. This euclidian distance is then used to get the angle (just some trigonometric trick).
 
-    :param method_standardized:
-    :param method:
-    :param emission_normal:
-    :param cos_method:
+    :param DataFrame method_standardized:
+        Dataframe composed by only one method agregated composed of several columns representing impact category
+        normalised
+    :param str method_name:
+        Method name
+    :param DataFrame emission_normal:
+        Dataframe of all LCIs of the database
+    :param DataFrame cos_method:
+        Dataframe composed by method as row and processes as columns. For each process it gives the cosinus between
+        the LCI and its projection on the environmental basis
     :return:
+    :rtype (DataFrame, DataFrame)
     """
 
-    (method_standardized_cleaned, cols) = clean_method(method_standardized)
+    method_standardized_cleaned = clean_method(method_standardized)
 
-    # !!! the next step moodify method_standardized_cleaned !!!
+    # WARNING: The next step modifies method_standardized_cleaned !!!
+    # TODO: Is it a problem to modify method_standardized_cleaned? If yes, fix this in orthonormation_method()
     method_standardized_ortho = orthonormation_method(method_standardized_cleaned)
 
     coeff, residual, rank, singular_values = np.linalg.lstsq(np.array(method_standardized_ortho.iloc[:, :]),
                                                              np.array(emission_normal))  # .iloc[:,:]))
 
-    # emissions are then normed and values are stored in a dataframe
+    # Emissions are then normed and values are stored in a dataframe
 
     emission_norm = pd.DataFrame(index=['norm'], columns=emission_normal.columns)
     for column in emission_norm.columns:
@@ -176,6 +182,6 @@ def calculate_representativeness_index_per_method(method_standardized, method, e
     cos_projection = pd.DataFrame(np.cos(np.real(np.arcsin(np.sqrt(residual) / (np.array(emission_norm))))),
                                   dtype='float', columns=emission_normal.columns, index=['cos'])
 
-    cos_method.loc[method] = cos_projection.iloc[0, :]
+    cos_method.loc[method_name] = cos_projection.iloc[0, :]
 
     return method_standardized_ortho, cos_method
