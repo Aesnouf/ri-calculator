@@ -74,11 +74,13 @@ def orthonormation_method(method_standardized_cleaned):
     :return: Orthonormed method
     :rtype DataFrame
     """
-    categories = method_standardized_cleaned.columns.tolist()
+    method_standardized_ortho = method_standardized_cleaned.copy(deep=True)
+
+    categories = method_standardized_ortho.columns.tolist()
 
     # normation of the first category
-    method_standardized_cleaned[categories[0]] = method_standardized_cleaned[categories[0]] / np.linalg.norm(
-        method_standardized_cleaned[categories[0]])
+    method_standardized_ortho[categories[0]] = method_standardized_ortho[categories[0]] / np.linalg.norm(
+        method_standardized_ortho[categories[0]])
 
     # normation of every following categories in a loop
     # j is a cursor that will pass every category (columns). The loop is stoped by the total number of category in the
@@ -90,26 +92,26 @@ def orthonormation_method(method_standardized_cleaned):
         i = 0
         while i < j:
             # calculate the orthogonal projection of j on each i and substraction of the projection from j
-            method_standardized_cleaned[categories[j]] = \
-                method_standardized_cleaned[categories[j]] - method_standardized_cleaned[categories[i]] * (
-                    sum(method_standardized_cleaned[categories[i]] * method_standardized_cleaned[categories[j]]) / sum(
-                        method_standardized_cleaned[categories[i]] * method_standardized_cleaned[categories[i]]))
-            if np.linalg.norm(method_standardized_cleaned[categories[j]]) == 0:
+            method_standardized_ortho[categories[j]] = \
+                method_standardized_ortho[categories[j]] - method_standardized_ortho[categories[i]] * (
+                    sum(method_standardized_ortho[categories[i]] * method_standardized_ortho[categories[j]]) / sum(
+                        method_standardized_ortho[categories[i]] * method_standardized_ortho[categories[i]]))
+            if np.linalg.norm(method_standardized_ortho[categories[j]]) == 0:
                 # if after the projection, the j columns became null, it is droped (i.e it is linearly dependant with
                 # the other columns)
-                method_standardized_cleaned.drop(method_standardized_cleaned.columns[j], inplace=True, axis=1)
+                method_standardized_ortho.drop(method_standardized_ortho.columns[j], inplace=True, axis=1)
                 categories.remove(categories[j])
 
                 # then the inner while loop ends
                 break
             else:
                 # the non null columns j is normed and the inner while loop keeps going
-                method_standardized_cleaned[categories[j]] = method_standardized_cleaned[categories[j]] / (
-                    np.linalg.norm(method_standardized_cleaned[categories[j]]))
+                method_standardized_ortho[categories[j]] = method_standardized_ortho[categories[j]] / (
+                    np.linalg.norm(method_standardized_ortho[categories[j]]))
                 i += 1
         j += 1
 
-    return method_standardized_cleaned
+    return method_standardized_ortho
 
 
 def calculate_representativeness_index_per_category(method_standardized, lci_standardized):
@@ -161,8 +163,6 @@ def calculate_representativeness_index_per_method(method_standardized, method_na
 
     method_standardized_cleaned = clean_method(method_standardized)
 
-    # WARNING: The next step modifies method_standardized_cleaned !!!
-    # TODO: Is it a problem to modify method_standardized_cleaned? If yes, fix this in orthonormation_method()
     method_standardized_ortho = orthonormation_method(method_standardized_cleaned)
 
     coeff, residual, rank, singular_values = np.linalg.lstsq(np.array(method_standardized_ortho.iloc[:, :]),
