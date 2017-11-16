@@ -2,7 +2,8 @@
 Functions used for RI Calculation
 """
 
-# TODO: Complete docstrings with explaination on what the functions does and how it must be used. Not with how it does it nor how it is implemented
+# TODO ANTOINE: Complete docstrings with explaination on what the functions does and how it must be used. Not with how it does it nor how it is implemented
+# TODO GUS: Reorganize code between files
 
 import scipy as np
 import pandas as pd
