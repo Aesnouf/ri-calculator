@@ -45,15 +45,16 @@ def compartment_coords(lci, compartments, new_names=None):
             end += 1
 
         # Sets the compartments name and coordinates
-        compartment_dict[new_names[compartments.index(compartment)]] = (start, end - 1)
+        compartment_dict[new_names[compartments.index(compartment)]] = (start, end)
 
     return compartment_dict
 
 
-def extract_lci(lci_simapro):
+def extract_lci(lci_simapro, lci_name):
     """
 
-    :param lci_simapro:
+    :param DataFrame lci_simapro:
+    :param str lci_name:
     :return:
     """
     compartments = compartment_coords(lci_simapro, COMPARTMENTS, NEW_NAMES)
@@ -75,23 +76,17 @@ def extract_lci(lci_simapro):
     lci_simapro.loc[lci_simapro.iloc[:, 0] == 'Transformation, to pasture and meadow, extensive', 2] = \
         lci_simapro.loc[lci_simapro.iloc[:, 0] == 'Transformation, to pasture and meadow, extensive', 2] / 1000
 
-    lci_simapro.loc["suspended solids, unspecified to water ground-", :] = \
-        lci_simapro.loc["suspended solids, unspecified to water ground-", :] / 10000000
-    lci_simapro.loc["suspended solids, unspecified to water unspecified", :] = \
-        lci_simapro.loc["suspended solids, unspecified to water unspecified", :] / 10000000
-
     lci_table = pd.DataFrame()
 
     for compartment, coords in compartments.items():
-        # TODO: Check that coordinates are OK (no need of +1 or -1)
         elementary_flows = pd.DataFrame(lci_simapro.iloc[coords[0]:coords[1], 2])
-        elementary_flows.index = "{} to {} {}".format(lci_simapro.iloc[coords[0]:coords[1], 0],
-                                                      compartment,
-                                                      lci_simapro.iloc[coords[0]:coords[1], 1])
+        elementary_flows.index = lci_simapro.iloc[coords[0]:coords[1], 0] + ' to ' + \
+                                 compartment + ' ' + \
+                                 lci_simapro.iloc[coords[0]:coords[1], 1]
         lci_table = lci_table.append(elementary_flows)
 
     # TODO: What to put here?
-    lci_table.columns = [filename]
+    lci_table.columns = [lci_name]
 
     return lci_table
 
@@ -119,7 +114,7 @@ def gather_lcis(lcis, lci_dir):
 
         lci_simapro = pd.io.excel.read_excel(filename, header=None, skiprows=None)
 
-        lci_table = extract_lci(lci_simapro)
+        lci_table = extract_lci(lci_simapro, lci)
 
         lcis_gathered = pd.DataFrame.join(lcis_gathered, lci_table, how='outer')
         lcis_gathered = lcis_gathered.fillna(value=0)
@@ -148,5 +143,10 @@ def gather_lcis(lcis, lci_dir):
 
     lcis_gathered = lcis_gathered.fillna(value=0)
     lcis_gathered = lcis_gathered[~lcis_gathered.index.duplicated(keep='first')]
+
+    lcis_gathered.loc["suspended solids, unspecified to water groundwater", :] = \
+        lcis_gathered.loc["suspended solids, unspecified to water groundwater", :] / 10000000
+    lcis_gathered.loc["suspended solids, unspecified to water (unspecified)", :] = \
+        lcis_gathered.loc["suspended solids, unspecified to water (unspecified)", :] / 10000000
 
     return lcis_gathered
