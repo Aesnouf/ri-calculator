@@ -1,4 +1,3 @@
-import os
 import collections
 
 import pandas as pd
@@ -6,11 +5,18 @@ import pandas as pd
 from lib.parameters import *
 
 
+# TODO: Add these recommandations in a docstring. It will also depend on the final code organization
 # SIMAPRO SYSTEM LCI FILES HAVE TO BE EXPORTED WITH THE OPTION "Detail" and "per categories"
 # otherwise, some line are added and the algorithm lost itself !....
 
-
+# TODO ANTOINE: Describe function in docstring
 def localisation_compartment(lci):
+    """
+
+
+    :param lci:
+    :return:
+    """
     v = pd.DataFrame(lci.iloc[:, 0] == 'Resources', columns=["start"])
     w = pd.DataFrame(lci.iloc[:, 0] == 'Emissions to air', columns=["start"])
     x = pd.DataFrame(lci.iloc[:, 0] == 'Emissions to water', columns=["start"])
@@ -36,7 +42,6 @@ def localisation_compartment(lci):
         v.loc[i, 'end'] = j
 
     v.index = ['Raw', 'Air', 'Water', 'Soil']
-    # for
 
     return v
 
@@ -75,12 +80,12 @@ def extract_lci(lci_simapro, loca):
             i] + ' ' + lci_simapro.iloc[loca.iloc[i, 0] + 1:loca.iloc[i, 1], 1]
         lci_table = lci_table.append(elementary_flows)
 
-    lci_table.columns = [filename_caract]
+    lci_table.columns = [filename]
 
     return lci_table  # liste_serie est liste de serie, meth_df est liste de dataframe
 
 
-rosetta = pd.io.excel.read_excel(DIR + ROSETTA, sheetname="ee", header=0, skiprows=None)
+rosetta = pd.io.excel.read_excel(ROSETTA, sheetname="ee", header=0, skiprows=None)
 
 # TODO GUS: Refactor path and constants usage
 
@@ -92,11 +97,9 @@ lcis_gathered = pd.DataFrame()
 # then all the lci_table are gathered in the same dataframe 'lcis_gathered'
 
 for lci in LCIS:
-    filename_caract = lci
-    cwdd = os.path.expanduser("C:/Users/Esnoufa/Documents/Python_data/")
+    filename = os.path.join(LCI_DIR, lci + ".XLSX")
 
-    lci_simapro = pd.io.excel.read_excel(cwdd + "/lci_from_simapro/" + filename_caract + ".XLSX", header=None,
-                                         skiprows=None)
+    lci_simapro = pd.io.excel.read_excel(filename, header=None, skiprows=None)
 
     loca = localisation_compartment(lci_simapro)
     lci_table = extract_lci(lci_simapro, loca)
