@@ -4,3 +4,4 @@ pandas
 xlrd
 numpy
 sklearn
+openpyxl

@@ -85,8 +85,37 @@ def extract_lci(lci_simapro, lci_name):
                                  lci_simapro.iloc[coords[0]:coords[1], 1]
         lci_table = lci_table.append(elementary_flows)
 
-    # TODO: What to put here?
     lci_table.columns = [lci_name]
+
+    # BUT i some dimensions are in double
+    # the duplicate have to be suppressed.
+    # they are here listed
+
+    # Lowercase for the index, otherwise it won't match...
+    lci_table.index = lci_table.index.str.lower()
+
+    duplicates = lci_table.index
+
+    duplicates = [item for item, count in collections.Counter(duplicates).items() if count > 1]
+
+    # I don't no if it is the right method but the results on each duplicate dimension are sumed and one of them is
+    # suppressed
+
+    # the two dimensions are considered the same and are sumed
+    # "water to air (unspecified)"
+    # "water/m3 to air (unspecified)"
+
+    for duplicate in duplicates:
+        lci_table.loc[duplicate, :] = [lci_table.loc[duplicate, :].sum()] * \
+                                          (lci_table.loc[duplicate, :].shape[0])
+
+    lci_table = lci_table.fillna(value=0)
+    lci_table = lci_table[~lci_table.index.duplicated(keep='first')]
+
+    lci_table.loc["suspended solids, unspecified to water groundwater", :] = \
+        lci_table.loc["suspended solids, unspecified to water groundwater", :] / 10000000
+    lci_table.loc["suspended solids, unspecified to water (unspecified)", :] = \
+        lci_table.loc["suspended solids, unspecified to water (unspecified)", :] / 10000000
 
     return lci_table
 
@@ -117,36 +146,5 @@ def gather_lcis(lcis, lci_dir):
         lci_table = extract_lci(lci_simapro, lci)
 
         lcis_gathered = pd.DataFrame.join(lcis_gathered, lci_table, how='outer')
-        lcis_gathered = lcis_gathered.fillna(value=0)
-
-    # Lowercase for the index, otherwise it won't match...
-    lcis_gathered.index = lcis_gathered.index.str.lower()
-
-    # BUT i some dimensions are in double
-    # the duplicate have to be suppressed.
-    # they are here listed
-
-    duplicates = lcis_gathered.index
-
-    duplicates = [item for item, count in collections.Counter(duplicates).items() if count > 1]
-
-    # I don't no if it is the right method but the results on each duplicate dimension are sumed and one of them is
-    # suppressed
-
-    # the two dimensions are considered the same and are sumed
-    # "water to air (unspecified)"
-    # "water/m3 to air (unspecified)"
-
-    for duplicate in duplicates:
-        lcis_gathered.loc[duplicate, :] = [lcis_gathered.loc[duplicate, :].sum()] * \
-                                          (lcis_gathered.loc[duplicate, :].shape[0])
-
-    lcis_gathered = lcis_gathered.fillna(value=0)
-    lcis_gathered = lcis_gathered[~lcis_gathered.index.duplicated(keep='first')]
-
-    lcis_gathered.loc["suspended solids, unspecified to water groundwater", :] = \
-        lcis_gathered.loc["suspended solids, unspecified to water groundwater", :] / 10000000
-    lcis_gathered.loc["suspended solids, unspecified to water (unspecified)", :] = \
-        lcis_gathered.loc["suspended solids, unspecified to water (unspecified)", :] / 10000000
 
     return lcis_gathered
