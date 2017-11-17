@@ -23,6 +23,9 @@ def standardize_inventory(lci, db_geometric_mean):
 
     for column in lci.columns:
         lci_standardized.loc[:, column] = (lci.loc[:, column]) / (db_geometric_mean.loc[:, 'gmean'])
+        lci_standardized.fillna(value=0, inplace=True)
+        lci_standardized.loc[:, column] = (lci_standardized.loc[:, column]) / \
+                                          (np.linalg.norm(lci_standardized.loc[:, column]))
 
     # Data cleaning
     lci_standardized = lci_standardized.fillna(value=0)
