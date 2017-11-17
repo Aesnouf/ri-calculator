@@ -138,7 +138,7 @@ def calculate_representativeness_index_per_category(method_standardized, lci_sta
     return representativeness_index_category
 
 
-def calculate_representativeness_index_per_method(method_standardized, method_name, emission_normal, cos_method):
+def calculate_representativeness_index_per_method(method_standardized, method_name, emission_standardized):
     """
     Calculates a Representativeness Index per category for a given method and LCI
 
@@ -154,27 +154,27 @@ def calculate_representativeness_index_per_method(method_standardized, method_na
         normalised
     :param str method_name:
         Method name
-    :param DataFrame emission_normal:
+    :param DataFrame emission_standardized:
         Dataframe of all LCIs of the database
-    :param DataFrame cos_method:
-        Dataframe composed by method as row and processes as columns. For each process it gives the cosinus between
-        the LCI and its projection on the environmental basis
     :return:
     :rtype (DataFrame, DataFrame)
     """
+
+    cos_method = pd.DataFrame(columns=emission_standardized.columns, dtype=float)
 
     method_standardized_cleaned = clean_method(method_standardized)
 
     method_standardized_ortho = orthonormation_method(method_standardized_cleaned)
 
+    emission_standardized = emission_standardized.fillna(value=0)
     coeff, residual, rank, singular_values = np.linalg.lstsq(np.array(method_standardized_ortho.iloc[:, :]),
-                                                             np.array(emission_normal))  # .iloc[:,:]))
+                                                             np.array(emission_standardized))  # .iloc[:,:]))
 
     # Emissions are then normed and values are stored in a dataframe
 
-    emission_norm = pd.DataFrame(index=['norm'], columns=emission_normal.columns)
+    emission_norm = pd.DataFrame(index=['norm'], columns=emission_standardized.columns)
     for column in emission_norm.columns:
-        emission_norm[column] = np.linalg.norm(emission_normal[column])
+        emission_norm[column] = np.linalg.norm(emission_standardized[column])
 
     # Residual are actually euclidean distance squared. We wanna angle or their cosinus.
     # The next code is just a trigonometric formula sin(alpa)=opposite side divided by hypothenus (norme)
@@ -182,8 +182,8 @@ def calculate_representativeness_index_per_method(method_standardized, method_na
     # Cosinus of the angle is then calculated
 
     cos_projection = pd.DataFrame(np.cos(np.real(np.arcsin(np.sqrt(residual) / (np.array(emission_norm))))),
-                                  dtype='float', columns=emission_normal.columns, index=['cos'])
+                                  dtype='float', columns=emission_standardized.columns, index=['cos'])
 
     cos_method.loc[method_name] = cos_projection.iloc[0, :]
 
-    return method_standardized_ortho, cos_method
+    return cos_method
