@@ -58,4 +58,4 @@ docs/_build/
 target/
 
 \.idea/
-/lib/manual_testing.py
+manual_testing.py

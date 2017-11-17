@@ -123,14 +123,16 @@ def calculate_representativeness_index_per_category(method_standardized, lci_sta
     :param DataFrame lci_standardized:
     :return:
     """
+    lci_standardized.fillna(value=0, inplace=True)
+    method_standardized.fillna(value=0, inplace=True)
 
     # Checking substance flows (indexes) are the same between lci and method
     if all(method_standardized.index == lci_standardized.index):
         representativeness_index_category = pd.DataFrame(index=method_standardized.columns,
                                                          columns=lci_standardized.columns)
-        for column in representativeness_index_category.columns:
-            residuals = np.linalg.lstsq(np.matrix(method_standardized.loc[:, column]).T, lci_standardized)[1]
-            representativeness_index_category.loc[column, :] = np.cos(np.real(np.arcsin(np.sqrt(residuals)))).T
+        for i in range(0, representativeness_index_category.shape[0]):
+            residuals = np.linalg.lstsq(np.matrix(method_standardized.iloc[:, i]).T, lci_standardized)[1]
+            representativeness_index_category.iloc[i, :] = np.cos(np.real(np.arcsin(np.sqrt(residuals)))).T
 
     else:
         raise Exception('Substance flows do not match between method and lci.')
