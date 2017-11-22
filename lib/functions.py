@@ -4,7 +4,6 @@ Functions used for RI Calculation
 
 # TODO ANTOINE: Complete docstrings with explaination on what the functions does and how it must be used. Not with how it does it nor how it is implemented
 # TODO GUS: Reorganize code between files
-# TODO: Solve this future error: RI Calculator\manual_testing.py:32: FutureWarning: Passing list-likes to .loc or [] with any missing label will raise KeyError in the future, you can use .reindex() as an alternative.
 
 import scipy as np
 from scipy import linalg
