@@ -4,8 +4,10 @@ Functions used for RI Calculation
 
 # TODO ANTOINE: Complete docstrings with explaination on what the functions does and how it must be used. Not with how it does it nor how it is implemented
 # TODO GUS: Reorganize code between files
+# TODO: Solve this future error: RI Calculator\manual_testing.py:32: FutureWarning: Passing list-likes to .loc or [] with any missing label will raise KeyError in the future, you can use .reindex() as an alternative.
 
 import scipy as np
+from scipy import linalg
 import pandas as pd
 from numpy import inf
 
@@ -125,6 +127,7 @@ def calculate_representativeness_index_per_category(method_standardized, lci_sta
     :param DataFrame method_standardized:
     :param DataFrame lci_standardized:
     :return:
+    :rtype: DataFrame
     """
     lci_standardized.fillna(value=0, inplace=True)
     method_standardized.fillna(value=0, inplace=True)
@@ -162,7 +165,7 @@ def calculate_representativeness_index_per_method(method_standardized, method_na
     :param DataFrame emission_standardized:
         Dataframe of all LCIs of the database
     :return:
-    :rtype (DataFrame, DataFrame)
+    :rtype DataFrame
     """
 
     cos_method = pd.DataFrame(columns=emission_standardized.columns, dtype=float)
