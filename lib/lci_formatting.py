@@ -2,11 +2,10 @@
 Functions used for LCI formatting.
 """
 
-
 import collections
 
 import pandas as pd
-import scipy as np
+import scipy as sp
 from scipy import linalg
 
 from lib.parameters import *
@@ -172,11 +171,11 @@ def standardize_inventory(lci, db_geometric_mean):
         lci_standardized.loc[:, column] = (lci.loc[:, column]) / (db_geometric_mean.loc[:, 'gmean'])
         lci_standardized.fillna(value=0, inplace=True)
         lci_standardized.loc[:, column] = (lci_standardized.loc[:, column]) / \
-                                          (np.linalg.norm(lci_standardized.loc[:, column]))
+                                          (linalg.norm(lci_standardized.loc[:, column]))
 
     # Data cleaning
     lci_standardized = lci_standardized.fillna(value=0)
-    lci_standardized[lci_standardized == np.inf] = 0
-    lci_standardized[lci_standardized == -np.inf] = 0
+    lci_standardized[lci_standardized == sp.inf] = 0
+    lci_standardized[lci_standardized == -sp.inf] = 0
 
     return lci_standardized

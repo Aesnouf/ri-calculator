@@ -1,5 +1,12 @@
 """
-RI Calculation
+One line short summary description
+
+5-6 lines brief description of the program
+
+author: Antoine Esnouf
+contributor: Gustave Coste
+contact: antoine.esnouf@inra.fr
+date: November 2017
 """
 # TODO: Write a brief description of the program in the above dosctring and copy it in README.md
 

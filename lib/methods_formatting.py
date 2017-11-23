@@ -4,8 +4,8 @@ Functions used for methods formatting.
 
 # TODO ANTOINE: Complete docstrings with explaination on what the functions does and how it must be used. Not with how it does it nor how it is implemented
 
-import scipy as np
 import pandas as pd
+from scipy import linalg
 
 
 def clean_method(method_standardized):
@@ -25,7 +25,7 @@ def clean_method(method_standardized):
     # If a category is empty, deletes it from the method
     categories = method_standardized_cleaned.columns.tolist()
     for category in categories:
-        if np.linalg.norm(method_standardized_cleaned[category]) == 0:
+        if linalg.norm(method_standardized_cleaned[category]) == 0:
             method_standardized_cleaned.drop(category, inplace=True, axis=1)
 
     # Now it is just a sorting step with the number of CF per category. This will make get more proper orthogonal
@@ -57,7 +57,7 @@ def orthonormation_method(method_standardized_cleaned):
     categories = method_standardized_ortho.columns.tolist()
 
     # normation of the first category
-    method_standardized_ortho[categories[0]] = method_standardized_ortho[categories[0]] / np.linalg.norm(
+    method_standardized_ortho[categories[0]] = method_standardized_ortho[categories[0]] / linalg.norm(
         method_standardized_ortho[categories[0]])
 
     # normation of every following categories in a loop
@@ -74,7 +74,7 @@ def orthonormation_method(method_standardized_cleaned):
                 method_standardized_ortho[categories[j]] - method_standardized_ortho[categories[i]] * (
                     sum(method_standardized_ortho[categories[i]] * method_standardized_ortho[categories[j]]) / sum(
                         method_standardized_ortho[categories[i]] * method_standardized_ortho[categories[i]]))
-            if np.linalg.norm(method_standardized_ortho[categories[j]]) == 0:
+            if linalg.norm(method_standardized_ortho[categories[j]]) == 0:
                 # if after the projection, the j columns became null, it is droped (i.e it is linearly dependant with
                 # the other columns)
                 method_standardized_ortho.drop(method_standardized_ortho.columns[j], inplace=True, axis=1)
@@ -85,7 +85,7 @@ def orthonormation_method(method_standardized_cleaned):
             else:
                 # the non null columns j is normed and the inner while loop keeps going
                 method_standardized_ortho[categories[j]] = method_standardized_ortho[categories[j]] / (
-                    np.linalg.norm(method_standardized_ortho[categories[j]]))
+                    linalg.norm(method_standardized_ortho[categories[j]]))
                 i += 1
         j += 1
 
