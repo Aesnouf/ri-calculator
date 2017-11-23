@@ -15,17 +15,17 @@ from lib.parameters import METHODS_LIST, GMEAN, METHODS
 ############################################### VALUES TO UPDATE #######################################################
 
 # Directory where are stored the simapro lcis
-LCIS_DIR = "C:/Users/costegus/Documents/Thèse Antoine/Python_data_basic/lci_from_simapro/"
+LCIS_DIR = "Path/to/the/lcis/directory"
 
 # Names of the simapro lci files (without file extension)
-LCIS = 'drive_100_km_chaeto_2', 'simapro_electricity, high voltage_market_CN', 'cellulase', 'test_fatty_alcohol'
+LCIS = ['lci1', 'lci2', '...', ]
 
 # Directory to export the results
-EXPORT_DIR = "C:/Users/costegus/Documents/Thèse Antoine/"
+EXPORT_DIR = "Path/to/export/directory"
 
-# Change these if you want, defaults are ri_category.xlsx and ri_methods.xlsx
-# RI_CATEGORY_FILENAME =
-# RI_METHODS_FILENAME =
+# Uncomment and change these if you want, defaults are ri_category.xlsx and ri_methods.xlsx
+# RI_CATEGORY_FILENAME = "your_filename"
+# RI_METHODS_FILENAME = "your_other_filename"
 
 ########################################################################################################################
 
