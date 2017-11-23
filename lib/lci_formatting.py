@@ -1,7 +1,13 @@
+"""
+Functions used for LCI formatting.
+"""
+
+
 import collections
-import os
 
 import pandas as pd
+import scipy as np
+from scipy import linalg
 
 from lib.parameters import *
 
@@ -14,7 +20,7 @@ def compartment_coords(lci, compartments, new_names=None):
     """
     Gets the coordinates of given compartments in a Simapro LCI export.
 
-    :param DataFrame lci:
+    :param pd.DataFrame lci:
         Simapro LCI export converted in Pandas DataFrame
     :param iterable compartments:
         Iterable constituted by the names of the compartments
@@ -54,7 +60,7 @@ def compartment_coords(lci, compartments, new_names=None):
 def extract_lci(lci_simapro, lci_name):
     """
 
-    :param DataFrame lci_simapro:
+    :param pd.DataFrame lci_simapro:
     :param str lci_name:
     :return:
     """
@@ -108,7 +114,7 @@ def extract_lci(lci_simapro, lci_name):
 
     for duplicate in duplicates:
         lci_table.loc[duplicate, :] = [lci_table.loc[duplicate, :].sum()] * \
-                                          (lci_table.loc[duplicate, :].shape[0])
+                                      (lci_table.loc[duplicate, :].shape[0])
 
     lci_table = lci_table.fillna(value=0)
     lci_table = lci_table[~lci_table.index.duplicated(keep='first')]
@@ -149,3 +155,28 @@ def gather_lcis(lcis, lci_dir):
         lcis_gathered = pd.DataFrame.join(lcis_gathered, lci_table, how='outer')
 
     return lcis_gathered
+
+
+def standardize_inventory(lci, db_geometric_mean):
+    """
+
+    :param pd.DataFrame lci:
+    :param pd.DataFrame db_geometric_mean:
+    :return:
+    :rtype DataFrame
+    """
+
+    lci_standardized = pd.DataFrame.copy(lci, deep=True)  # sinon pas de réelle création d'un nouveau tableau
+
+    for column in lci.columns:
+        lci_standardized.loc[:, column] = (lci.loc[:, column]) / (db_geometric_mean.loc[:, 'gmean'])
+        lci_standardized.fillna(value=0, inplace=True)
+        lci_standardized.loc[:, column] = (lci_standardized.loc[:, column]) / \
+                                          (np.linalg.norm(lci_standardized.loc[:, column]))
+
+    # Data cleaning
+    lci_standardized = lci_standardized.fillna(value=0)
+    lci_standardized[lci_standardized == np.inf] = 0
+    lci_standardized[lci_standardized == -np.inf] = 0
+
+    return lci_standardized

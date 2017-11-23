@@ -1,5 +1,0 @@
-"""
-RI Calculation
-"""
-
-
