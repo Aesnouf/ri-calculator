@@ -92,11 +92,15 @@ def filter_methods(methods_standardized, methods_to_filter):
     :param pd.DataFrame methods_standardized:
         Dataframe constituted one or many method(s) aggregated, ie. constituted of several columns representing impact
         categories normalized
-    :param iterable methods_to_filter:
+    :param iterable or str methods_to_filter:
         Names of the methods to filter
     :return: Filtered methods
     :rtype: pd.DataFrame
     """
+
+    # Ensuring methods_to_filter is a list. Usefull in case of usage with a string.
+    if type(methods_to_filter) == str:
+        methods_to_filter = [methods_to_filter]
 
     # Gets the columns containing an entity of methods_to_filter in their name
     columns = [column for column in methods_standardized.columns if any(x in column for x in methods_to_filter)]

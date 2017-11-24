@@ -14,9 +14,9 @@ import os
 
 import pandas as pd
 
-from lib.lci_formatting import gather_lcis, standardize_inventory
-from lib.ri_calculation import calculate_representativeness_index_per_category, \
-    calculate_representativeness_index_per_method
+from lib.lci_formatting import gather_lcis, standardize_lci
+from lib.ri_calculation import representativeness_index_per_category, representativeness_index_per_method
+from lib.methods_formatting import filter_methods
 from lib.parameters import METHODS_LIST, GMEAN, METHODS
 
 ############################################### VALUES TO UPDATE #######################################################
@@ -32,6 +32,10 @@ LCIS = ['lci1', 'lci2', '...', ]
 # Directory to export the results
 EXPORT_DIR = "Path/to/export/directory"
 
+# Names of the methods to study. Availaible methods names can be found in methods.txt.
+# Comment the line to use every methods
+METHODS_NAMES = ['method1', 'method2', '...', ]
+
 
 # Uncomment and change these if you want, defaults are ri_category.xlsx and ri_methods.xlsx
 # RI_CATEGORY_FILENAME = "your_filename"
@@ -46,11 +50,16 @@ def main():
 
     lcis = gather_lcis(LCIS, LCIS_DIR)
     lcis = lcis.reindex(index=methods.index)
-    std_lci = standardize_inventory(lcis, gmean)
-    ri_cat = calculate_representativeness_index_per_category(methods, std_lci)
+    standardized_lci = standardize_lci(lcis, gmean)
+    ri_cat = representativeness_index_per_category(methods, standardized_lci)
 
-    meth_to_study = methods.loc[:, [s for s in methods.columns if METHODS_LIST[0] in s]]
-    ri_methods = calculate_representativeness_index_per_method(meth_to_study, METHODS_LIST[0], std_lci)
+    try:
+        methods_names = METHODS_NAMES
+    except NameError:
+        methods_names = METHODS_LIST
+
+    methods_to_study = filter_methods(methods, methods_names)
+    ri_methods = representativeness_index_per_method(methods_to_study, methods_names, standardized_lci)
 
     # Exporting data
     try:

@@ -6,7 +6,7 @@ import pandas as pd
 import scipy as sp
 from scipy import linalg
 
-from lib.methods_formatting import clean_method, orthonormation_method
+from lib.methods_formatting import clean_method, orthonormation_method, filter_methods
 
 
 def representativeness_index_per_category(methods_standardized, lci_standardized):
@@ -15,7 +15,7 @@ def representativeness_index_per_category(methods_standardized, lci_standardized
 
     :param pd.DataFrame methods_standardized:
         Dataframe constituted one or many method(s) aggregated, ie. constituted of several columns representing impact 
-        categories normalized
+        categories
     :param pd.DataFrame lci_standardized:
         LCI(s) data formatted with standardize_lci()
     :return:
@@ -39,52 +39,42 @@ def representativeness_index_per_category(methods_standardized, lci_standardized
     return representativeness_index
 
 
-def calculate_representativeness_index_per_method(method_standardized, method_name, emission_standardized):
+def representativeness_index_per_method(methods_standardized, methods_names, lci_standardized):
     """
-    Calculates a Representativeness Index per category for a given method and LCI
+    Calculates a Representativeness Index per method and LCI
 
-    clean_method() just reorganizes impact categories by ordering them by ascending number of characterisation factor
-    and drops methods if they are empty (as in the case of studying a piece of the emission)
-
-    orthonomation_meth() transforms impact categories to get them orthonormed.
-    Then it uses linalg.lstsq() to get euclidian distance between LCI and the most accurate modelisation point
-    in the environmental basis. This euclidian distance is then used to get the angle (just some trigonometric trick).
-
-    :param pd.DataFrame method_standardized:
-        Dataframe composed by only one method agregated composed of several columns representing impact category
-        normalised
-    :param str method_name:
-        Method name
-    :param pd.DataFrame emission_standardized:
-        Dataframe of all LCIs of the database
+    :param pd.DataFrame methods_standardized:
+        Dataframe constituted one or many method(s) aggregated, ie. constituted of several columns representing impact
+        categories normalized
+    :param iterable methods_names:
+        Iterable constituted by the names of the methods to study
+    :param pd.DataFrame lci_standardized:
+        LCI(s) data formatted with standardize_lci()
     :return:
-    :rtype DataFrame
+        Representativeness index per method
+    :rtype pd.DataFrame
     """
 
-    cos_method = pd.DataFrame(columns=emission_standardized.columns, dtype=float)
+    representativeness_index = pd.DataFrame(columns=lci_standardized.columns, dtype=float)
 
-    method_standardized_cleaned = clean_method(method_standardized)
+    lci_standardized = lci_standardized.fillna(value=0)
 
-    method_standardized_ortho = orthonormation_method(method_standardized_cleaned)
+    for method_name in methods_names:
 
-    emission_standardized = emission_standardized.fillna(value=0)
-    coeff, residual, rank, singular_values = linalg.lstsq(sp.array(method_standardized_ortho.iloc[:, :]),
-                                                             sp.array(emission_standardized))  # .iloc[:,:]))
+        method = filter_methods(methods_standardized, method_name)
 
-    # Emissions are then normed and values are stored in a dataframe
+        method_cleaned = clean_method(method)
+        method_ortho = orthonormation_method(method_cleaned)
 
-    emission_norm = pd.DataFrame(index=['norm'], columns=emission_standardized.columns)
-    for column in emission_norm.columns:
-        emission_norm[column] = linalg.norm(emission_standardized[column])
+        residual = linalg.lstsq(method_ortho, lci_standardized)[1]
 
-    # Residual are actually euclidean distance squared. We wanna angle or their cosinus.
-    # The next code is just a trigonometric formula sin(alpa)=opposite side divided by hypothenus (norme)
-    # Real function is used otherwise angle can get imaginary part (still don't know why... tried...)
-    # Cosinus of the angle is then calculated
+        emission_norm = pd.DataFrame(index=['norm'], columns=lci_standardized.columns)
+        for column in emission_norm.columns:
+            emission_norm[column] = linalg.norm(lci_standardized[column])
 
-    cos_projection = pd.DataFrame(sp.cos(sp.real(sp.arcsin(sp.sqrt(residual) / (sp.array(emission_norm))))),
-                                  dtype='float', columns=emission_standardized.columns, index=['cos'])
+        cos_projection = pd.DataFrame(sp.cos(sp.real(sp.arcsin(sp.sqrt(residual) / (sp.array(emission_norm))))),
+                                      dtype='float', columns=lci_standardized.columns, index=['cos'])
 
-    cos_method.loc[method_name] = cos_projection.iloc[0, :]
+        representativeness_index.loc[method_name] = cos_projection.iloc[0, :]
 
-    return cos_method
+    return representativeness_index
