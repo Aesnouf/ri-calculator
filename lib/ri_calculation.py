@@ -9,29 +9,34 @@ from scipy import linalg
 from lib.methods_formatting import clean_method, orthonormation_method
 
 
-def calculate_representativeness_index_per_category(method_standardized, lci_standardized):
+def representativeness_index_per_category(methods_standardized, lci_standardized):
     """
+    Calculates a Representativeness Index per impact category on one or many standardized LCI(s)
 
-    :param pd.DataFrame method_standardized:
+    :param pd.DataFrame methods_standardized:
+        Dataframe constituted one or many method(s) aggregated, ie. constituted of several columns representing impact 
+        categories normalized
     :param pd.DataFrame lci_standardized:
+        LCI(s) data formatted with standardize_lci()
     :return:
-    :rtype: DataFrame
+        Representativeness index per impact category
+    :rtype: pd.DataFrame
     """
     lci_standardized.fillna(value=0, inplace=True)
-    method_standardized.fillna(value=0, inplace=True)
+    methods_standardized.fillna(value=0, inplace=True)
 
     # Checking substance flows (indexes) are the same between lci and method
-    if all(method_standardized.index == lci_standardized.index):
-        representativeness_index_category = pd.DataFrame(index=method_standardized.columns,
-                                                         columns=lci_standardized.columns)
-        for i in range(0, representativeness_index_category.shape[0]):
-            residuals = linalg.lstsq(sp.matrix(method_standardized.iloc[:, i]).T, lci_standardized)[1]
-            representativeness_index_category.iloc[i, :] = sp.cos(sp.real(sp.arcsin(sp.sqrt(residuals)))).T
+    if all(methods_standardized.index == lci_standardized.index):
+        representativeness_index = pd.DataFrame(index=methods_standardized.columns,
+                                                columns=lci_standardized.columns)
+        for i in range(0, representativeness_index.shape[0]):
+            residuals = linalg.lstsq(sp.matrix(methods_standardized.iloc[:, i]).T, lci_standardized)[1]
+            representativeness_index.iloc[i, :] = sp.cos(sp.real(sp.arcsin(sp.sqrt(residuals)))).T
 
     else:
         raise Exception('Substance flows do not match between method and lci.')
 
-    return representativeness_index_category
+    return representativeness_index
 
 
 def calculate_representativeness_index_per_method(method_standardized, method_name, emission_standardized):

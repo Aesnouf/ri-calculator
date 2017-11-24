@@ -11,13 +11,11 @@ from scipy import linalg
 from lib.parameters import *
 
 
-# TODO: Add these recommandations in a docstring. It will also depend on the final code organization
-# SIMAPRO SYSTEM LCI FILES HAVE TO BE EXPORTED WITH THE OPTION "Detail" and "per categories"
-# otherwise, some line are added and the algorithm lost itself !....
-
 def compartment_coords(lci, compartments, new_names=None):
     """
     Gets the coordinates of given compartments in a Simapro LCI export.
+
+    If new_names is specified, compartments will be renamed according to it.
 
     :param pd.DataFrame lci:
         Simapro LCI export converted in Pandas DataFrame
@@ -58,15 +56,18 @@ def compartment_coords(lci, compartments, new_names=None):
 
 def extract_lci(lci_simapro, lci_name):
     """
+    Extracts and formats an LCI from a Simapro LCI export file.
 
     :param pd.DataFrame lci_simapro:
+        Simapro LCI export file converted in pandas DataFrame
     :param str lci_name:
-    :return:
+        Name of the LCI
+    :return: Formatted LCI data
+    :rtype: pd.DataFrame
     """
     compartments = compartment_coords(lci_simapro, COMPARTMENTS, NEW_NAMES)
 
-    # Some elementary flows sub-compartment have to be modified to get a right nomenclature for rosetta....
-    # If sub-comp is empty, I put unspecified
+    # Some elementary flows sub-compartment have to be modified to fit with ecoinvent format
     lci_simapro.loc[lci_simapro.iloc[:, 1] != lci_simapro.iloc[:, 1], 1] = "(unspecified)"
     lci_simapro.loc[lci_simapro.iloc[:, 1] == 'in ground', 1] = "(unspecified)"
     lci_simapro.loc[lci_simapro.iloc[:, 1] == 'land', 1] = "(unspecified)"
@@ -76,7 +77,7 @@ def extract_lci(lci_simapro, lci_name):
     lci_simapro.loc[lci_simapro.iloc[:, 1] == 'biotic', 1] = "(unspecified)"
     lci_simapro.loc[lci_simapro.iloc[:, 1] == 'river', 1] = "lake"
 
-    # Bq was in kBq....
+    # Flows in Bq are in fact in kBq, fixing it
     lci_simapro.loc[lci_simapro.iloc[:, 3] == 'Bq', 2] = lci_simapro.loc[lci_simapro.iloc[:, 3] == 'Bq', 2] / 1000
 
     lci_simapro.loc[lci_simapro.iloc[:, 0] == 'Transformation, to pasture and meadow, extensive', 2] = \
@@ -93,24 +94,15 @@ def extract_lci(lci_simapro, lci_name):
 
     lci_table.columns = [lci_name]
 
-    # BUT i some dimensions are in double
-    # the duplicate have to be suppressed.
-    # they are here listed
-
-    # Lowercase for the index, otherwise it won't match...
+    # Index is transformed to lowercase to avoid case errors
     lci_table.index = lci_table.index.str.lower()
 
+    # Removing duplicates
     duplicates = lci_table.index
 
     duplicates = [item for item, count in collections.Counter(duplicates).items() if count > 1]
 
-    # I don't no if it is the right method but the results on each duplicate dimension are sumed and one of them is
-    # suppressed
-
-    # the two dimensions are considered the same and are sumed
-    # "water to air (unspecified)"
-    # "water/m3 to air (unspecified)"
-
+    # The results on each duplicate dimension are summed and one of them is deleted
     for duplicate in duplicates:
         lci_table.loc[duplicate, :] = [lci_table.loc[duplicate, :].sum()] * \
                                       (lci_table.loc[duplicate, :].shape[0])
@@ -128,19 +120,18 @@ def extract_lci(lci_simapro, lci_name):
 
 def gather_lcis(lcis, lci_dir):
     """
+    Extracts LCIs from Simapro LCIs exports files and gathers them in a single pandas DataFrame
 
-
+    For each LCI file exported from simapro and named in lcis, LCI data are extracted and formatted, then every LCIs are
+    gathered in a single pandas DataFrame.
 
     :param iterable lcis:
-        List of lcis filenames (without file extension)
+        List of LCIs filenames (without file extension)
     :param str lci_dir:
-        Folder where all lcis files are gathered
+        Folder where all LCIs files are gathered
     :return:
-    :rtype: DataFrame
+    :rtype: pd.DataFrame
     """
-    # for each lcis file exported from simapro and named in the list the location of each comparment
-    # (resources, air, water, soil) in the excel files are extracted then the elementary flows are gathered in the same
-    # dataframe 'lci_table' then all the lci_table are gathered in the same dataframe 'lcis_gathered'
 
     lcis_gathered = pd.DataFrame()
 
@@ -156,16 +147,19 @@ def gather_lcis(lcis, lci_dir):
     return lcis_gathered
 
 
-def standardize_inventory(lci, db_geometric_mean):
+def standardize_lci(lci, db_geometric_mean):
     """
+    Standardizes LCI values with the geometric means of an entire database (flow by flow).
 
     :param pd.DataFrame lci:
+        LCI to standardize
     :param pd.DataFrame db_geometric_mean:
-    :return:
-    :rtype DataFrame
+        Database geometric means
+    :return: Standardized LCI
+    :rtype: pd.DataFrame
     """
 
-    lci_standardized = pd.DataFrame.copy(lci, deep=True)  # sinon pas de réelle création d'un nouveau tableau
+    lci_standardized = pd.DataFrame.copy(lci, deep=True)
 
     for column in lci.columns:
         lci_standardized.loc[:, column] = (lci.loc[:, column]) / (db_geometric_mean.loc[:, 'gmean'])
@@ -173,7 +167,6 @@ def standardize_inventory(lci, db_geometric_mean):
         lci_standardized.loc[:, column] = (lci_standardized.loc[:, column]) / \
                                           (linalg.norm(lci_standardized.loc[:, column]))
 
-    # Data cleaning
     lci_standardized = lci_standardized.fillna(value=0)
     lci_standardized[lci_standardized == sp.inf] = 0
     lci_standardized[lci_standardized == -sp.inf] = 0

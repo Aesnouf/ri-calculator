@@ -21,6 +21,8 @@ from lib.parameters import METHODS_LIST, GMEAN, METHODS
 
 ############################################### VALUES TO UPDATE #######################################################
 
+# SIMAPRO SYSTEM LCI FILES HAVE TO BE EXPORTED WITH THE OPTION "Detail" and "per categories"
+
 # Directory where are stored the simapro lcis
 LCIS_DIR = "Path/to/the/lcis/directory"
 
