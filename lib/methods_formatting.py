@@ -83,3 +83,24 @@ def orthonormation_method(method_standardized_cleaned):
         j += 1
 
     return method_standardized_ortho
+
+
+def filter_methods(methods_standardized, methods_to_filter):
+    """
+    Filters a standardized methods DataFrame on methods name
+
+    :param pd.DataFrame methods_standardized:
+        Dataframe constituted one or many method(s) aggregated, ie. constituted of several columns representing impact
+        categories normalized
+    :param iterable methods_to_filter:
+        Names of the methods to filter
+    :return: Filtered methods
+    :rtype: pd.DataFrame
+    """
+
+    # Gets the columns containing an entity of methods_to_filter in their name
+    columns = [column for column in methods_standardized.columns if any(x in column for x in methods_to_filter)]
+
+    filtered_methods = methods_standardized.loc[:, columns]
+
+    return filtered_methods
