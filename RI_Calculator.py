@@ -1,7 +1,13 @@
 """
-One line short summary description
+The program determines the Representativeness Indexes of LCIA methods and their impact categories for one or several LCIs.
 
-5-6 lines brief description of the program
+The program allows to apply the RI methodology developed by Esnouf, A et al. (see link in README.md).
+RIs are indexes of the relevance of LCIA methods or impact categories to study one or several system (or aggregated
+version) LCIs in the global context of their database. This first version of the program is only compatible with simapro
+export and LCI modeled with ecoinvent 3.1 database version “allocation at the point of substitution”.
+The directory of the folder where the excel files are stored have to be specified, as well as the names of the simapro
+export files. When running the program, two excel files containing RIs results (for methods and impact categories)
+are generated and stored in the specified directory.
 
 Author: Antoine Esnouf
 Contributor: Gustave Coste
@@ -34,10 +40,10 @@ EXPORT_DIR = "Path/to/export/directory"
 
 # Names of the methods to study. Availaible methods names can be found in methods.txt.
 # Comment the line to use every methods
-METHODS_NAMES = ['method1', 'method2', '...', ]
+#METHODS_NAMES = ['method1', 'method2', '...', ]
 
 
-# Uncomment and change these if you want, defaults are ri_category.xlsx and ri_methods.xlsx
+# Uncomment and change these if you want personalized filenames, defaults are ri_category.xlsx and ri_methods.xlsx
 # RI_CATEGORY_FILENAME = "your_filename"
 # RI_METHODS_FILENAME = "your_other_filename"
 
