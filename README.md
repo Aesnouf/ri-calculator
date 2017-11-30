@@ -9,7 +9,7 @@ The version of the analyzed LCIA methods can be found in methods.txt. LCIA metho
 RI_Calculator.py is the main script where directories and excel LCI names have to be specified. 
 Running this program will use the different python files supplied in the package.
 
-Using lci_formatting.py, LCIs are formatted (to modify their fromat from the simapro export format) and standardized with the geometric means of the ecoinvent 3.1 dimensions.
+Using lci_formatting.py, LCIs are formatted (to modify their format from the simapro export format) and standardized with the geometric means of the ecoinvent 3.1 dimensions.
 The impact category RIs are then determined (ri_calculation.py).
 
 To obtain the LCIA method RIs, methods have to be formatted to organize and orthogonalize them (method_formatting.py).
