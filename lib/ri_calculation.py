@@ -83,7 +83,7 @@ def representativeness_index_per_method(standardized_methods, methods_names, sta
 
 def representativeness_index_per_orthogonalized_category(standardized_methods, method_names, standardized_lcis):
     """
-    Write a docstring
+    Calculates a Representativeness Index per orthogonalized impact category on one or many standardized LCI(s)
 
     :param pd.DataFrame standardized_methods:
         Dataframe constituted by one or many method(s) aggregated, ie. constituted by several columns representing
@@ -93,7 +93,7 @@ def representativeness_index_per_orthogonalized_category(standardized_methods, m
     :param pd.DataFrame standardized_lcis:
         LCI(s) data formatted with standardize_lci()
     :return:
-        ?????????????????????????????????
+        Representativeness index per orthogonalized category
     :rtype pd.DataFrame
     """
 
