@@ -11,7 +11,7 @@ nomenclature. The standardization of LCIA method has already been applied.
 Usage:
 
 RI_Calculator.py is the main script where directories and excel LCI names have to be specified.
-Running this program will use the different python files supplied in the package.
+Running this program will use the different Python files supplied in the package.
 
 Using lci_formatting.py, LCIs are formatted (to modify their fromat from the simapro export format) and standardized
 with the geometric means of the ecoinvent 3.1 dimensions.
@@ -39,7 +39,8 @@ import os
 import pandas as pd
 
 from lib.lci_formatting import gather_lcis, standardize_lci
-from lib.ri_calculation import representativeness_index_per_category, representativeness_index_per_method
+from lib.ri_calculation import representativeness_index_per_category, representativeness_index_per_method, \
+    representativeness_index_per_orthogonalized_category
 from lib.methods_formatting import filter_methods
 from lib.parameters import METHODS_LIST, GMEAN, METHODS
 
@@ -56,13 +57,15 @@ LCIS = ['lci1', 'lci2', '...', ]
 # Directory to export the results
 EXPORT_DIR = "Path/to/export/directory"
 
+
 # Names of the methods to study. Availaible methods names can be found in methods.txt.
 # Comment the line to use every methods
-#METHODS_NAMES = ['method1', 'method2', '...', ]
+# METHODS_NAMES = ['method1', 'method2', '...', ]
 
 
 # Uncomment and change these if you want personalized filenames, defaults are ri_category.xlsx and ri_methods.xlsx
 # RI_CATEGORY_FILENAME = "your_filename"
+# RI_CATEGORY_ORTHO_FILENAME = "your_filename"
 # RI_METHODS_FILENAME = "your_other_filename"
 
 ########################################################################################################################
@@ -76,6 +79,7 @@ def main():
     lcis = lcis.reindex(index=methods.index)
     standardized_lci = standardize_lci(lcis, gmean)
     ri_cat = representativeness_index_per_category(methods, standardized_lci)
+    ri_cat_ortho = representativeness_index_per_orthogonalized_category(methods, standardized_lci)
 
     try:
         methods_names = METHODS_NAMES
@@ -92,11 +96,17 @@ def main():
         ri_category_filename = "ri_category.xlsx"
 
     try:
+        ri_category_ortho_filename = RI_CATEGORY_ORTHO_FILENAME + ".xlsx"
+    except NameError:
+        ri_category_ortho_filename = "ri_category_ortho.xlsx"
+
+    try:
         ri_methods_filename = RI_METHODS_FILENAME + ".xlsx"
     except NameError:
         ri_methods_filename = "ri_methods.xlsx"
 
     pd.DataFrame.to_excel(ri_cat, os.path.join(EXPORT_DIR, ri_category_filename))
+    pd.DataFrame.to_excel(ri_cat_ortho, os.path.join(EXPORT_DIR, ri_category_ortho_filename))
     pd.DataFrame.to_excel(ri_methods, os.path.join(EXPORT_DIR, ri_methods_filename))
 
 

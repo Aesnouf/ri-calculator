@@ -6,19 +6,19 @@ import pandas as pd
 from scipy import linalg
 
 
-def clean_method(method_standardized):
+def clean_method(standardized_methods):
     """
     This function cleans a methods.
 
     Removes empty impact categories (constituted by 0 only) from the method and sort them by number of non zero values.
 
-    :param pd.DataFrame method_standardized:
+    :param pd.DataFrame standardized_methods:
         Standardized method to be cleaned
     :return: Cleaned method
     :rtype DataFrame
     """
 
-    method_standardized_cleaned = method_standardized.copy(deep=True)
+    method_standardized_cleaned = standardized_methods.copy(deep=True)
     method_standardized_cleaned = method_standardized_cleaned.fillna(value=0)
 
     # If a category is empty, deletes it from the method
@@ -37,20 +37,20 @@ def clean_method(method_standardized):
     return method_standardized_cleaned
 
 
-def orthonormation_method(method_standardized_cleaned):
+def orthonormation_method(standardized_methods_cleaned):
     """
     Orthonormation of the impact categories according to the order resulting of clean_method()
 
-    A loop on impact categories is performed. Each category is transformed by supressing any composant belonging to
+    A loop on impact categories is performed. Each category is transformed by suppressing any componant belonging to
     each previous category in the loop. I.E each category is orthogonized related to the other categories.
-    Impact categories are also normalised (norme = 1).
+    Impact categories are also normalized (norme = 1).
 
-    :param pd.DataFrame method_standardized_cleaned:
+    :param pd.DataFrame standardized_methods_cleaned:
         Standardized method sorted and cleaned of its empty impact categories with clean_method()
     :return: Orthonormed method
     :rtype pd.DataFrame
     """
-    method_standardized_ortho = method_standardized_cleaned.copy(deep=True)
+    method_standardized_ortho = standardized_methods_cleaned.copy(deep=True)
 
     categories = method_standardized_ortho.columns.tolist()
 
@@ -66,8 +66,8 @@ def orthonormation_method(method_standardized_cleaned):
             # Calculates the orthogonal projection of j on each i and substraction of the projection from j
             method_standardized_ortho[categories[j]] = \
                 method_standardized_ortho[categories[j]] - method_standardized_ortho[categories[i]] * (
-                    sum(method_standardized_ortho[categories[i]] * method_standardized_ortho[categories[j]]) / sum(
-                        method_standardized_ortho[categories[i]] * method_standardized_ortho[categories[i]]))
+                        sum(method_standardized_ortho[categories[i]] * method_standardized_ortho[categories[j]]) /
+                        sum(method_standardized_ortho[categories[i]] * method_standardized_ortho[categories[i]]))
             if linalg.norm(method_standardized_ortho[categories[j]]) == 0:
                 # If after the projection, the j columns is null, it is droped (i.e it is linearly dependant with
                 # the other columns) and the inner loop stops
@@ -77,19 +77,19 @@ def orthonormation_method(method_standardized_cleaned):
                 break
             else:
                 # If the j column is not null, it is normed and the inner while loop keeps going
-                method_standardized_ortho[categories[j]] = method_standardized_ortho[categories[j]] / (
-                    linalg.norm(method_standardized_ortho[categories[j]]))
+                method_standardized_ortho[categories[j]] = method_standardized_ortho[categories[j]] / \
+                                                           (linalg.norm(method_standardized_ortho[categories[j]]))
                 i += 1
         j += 1
 
     return method_standardized_ortho
 
 
-def filter_methods(methods_standardized, methods_to_filter):
+def filter_methods(standardized_methods, methods_to_filter):
     """
     Filters a standardized methods DataFrame on methods name
 
-    :param pd.DataFrame methods_standardized:
+    :param pd.DataFrame standardized_methods:
         Dataframe constituted one or many method(s) aggregated, ie. constituted of several columns representing impact
         categories normalized
     :param iterable or str methods_to_filter:
@@ -103,8 +103,8 @@ def filter_methods(methods_standardized, methods_to_filter):
         methods_to_filter = [methods_to_filter]
 
     # Gets the columns containing an entity of methods_to_filter in their name
-    columns = [column for column in methods_standardized.columns if any(x in column for x in methods_to_filter)]
+    columns = [column for column in standardized_methods.columns if any(x in column for x in methods_to_filter)]
 
-    filtered_methods = methods_standardized.loc[:, columns]
+    filtered_methods = standardized_methods.loc[:, columns]
 
     return filtered_methods
