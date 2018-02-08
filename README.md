@@ -4,6 +4,9 @@ This program allows to apply the RI methodology developed by Esnouf, A et al. (s
 RIs are indexes of the relevance of Life Cycle Impact Assessment methods (LCIA) or impact categories to study one or several system Life Cycle Inventories  (or aggregated LCIs) in the global context of their database. This first version of the program is only compatible with simapro export and LCI modeled with ecoinvent 3.1 database version “allocation at the point of substitution”.
 The version of the analyzed LCIA methods can be found in methods.txt. LCIA methods are provided with the Simapro nomenclature. The standardization of LCIA method has already been applied.
 
+RIs for a LCIA method and for each of its impact categories can be obtain.
+RIs from orthogonalized impact categories is also calculated to avoid over/underrepresentation of LCI when several impact categories are correlated.
+
 **Usage**
 
 RI_Calculator.py is the main script where directories and excel LCI names have to be specified. 
