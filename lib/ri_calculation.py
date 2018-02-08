@@ -134,13 +134,12 @@ def representativeness_index_per_orthogonalized_category(standardized_methods, m
         # Creating a DataFrame containing differences between ri_cat_original and ri_cat_ortho
         diff = ri_cat_original_sq.loc[ri_cat_ortho_sq.index, :] - ri_cat_ortho_sq
 
-        # Creating a copy of ri_cat_ortho squared that will be modified to obtain the final result for this method
+        # Creating a copy of ri_cat_ortho_sq that will be modified to obtain the final result for this method
         result_per_method = ri_cat_original_sq.copy(deep=True)
 
-        # Looping on ordered categories
+        # Looping on ordered categories and lcis to update values in result_per_method
         for category in ordered_categories:
             correlated_categories = correlation_matrix.loc[:, correlation_matrix.loc[:, category] != 0].columns
-
             correlated_categories_ri = ri_cat_original_sq.loc[correlated_categories, :]
 
             # Looping on lcis
