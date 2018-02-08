@@ -79,7 +79,6 @@ def main():
     lcis = lcis.reindex(index=methods.index)
     standardized_lci = standardize_lci(lcis, gmean)
     ri_cat = representativeness_index_per_category(methods, standardized_lci)
-    ri_cat_ortho = representativeness_index_per_orthogonalized_category(methods, standardized_lci)
 
     try:
         methods_names = METHODS_NAMES
@@ -87,6 +86,8 @@ def main():
         methods_names = METHODS_LIST
 
     methods_to_study = filter_methods(methods, methods_names)
+    ri_cat_ortho = representativeness_index_per_orthogonalized_category(methods_to_study, methods_names,
+                                                                        standardized_lci)
     ri_methods = representativeness_index_per_method(methods_to_study, methods_names, standardized_lci)
 
     # Exporting data

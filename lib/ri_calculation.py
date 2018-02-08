@@ -97,8 +97,10 @@ def representativeness_index_per_orthogonalized_category(standardized_methods, m
     :rtype pd.DataFrame
     """
 
-    ri_cat_original_sq = np.square(representativeness_index_per_category(standardized_methods=standardized_methods,
-                                                                         standardized_lcis=standardized_lcis))
+    ri_cat_original = representativeness_index_per_category(standardized_methods=standardized_methods,
+                                                            standardized_lcis=standardized_lcis)
+    ri_cat_original_sq = ri_cat_original.applymap(np.square)
+
     result = pd.DataFrame(columns=standardized_lcis.columns)
 
     for method_name in method_names:
@@ -125,28 +127,30 @@ def representativeness_index_per_orthogonalized_category(standardized_methods, m
         orthonormed_categories = orthonormation_method(ordered_categories)
 
         # Calculating RI for orthonormed categories
-        ri_cat_ortho_sq = np.square(representativeness_index_per_category(standardized_methods=orthonormed_categories,
-                                                                          standardized_lcis=standardized_lcis))
+        ri_cat_ortho = representativeness_index_per_category(standardized_methods=orthonormed_categories,
+                                                             standardized_lcis=standardized_lcis)
+        ri_cat_ortho_sq = ri_cat_ortho.applymap(np.square)
 
         # Creating a DataFrame containing differences between ri_cat_original and ri_cat_ortho
-        diff = ri_cat_original_sq - ri_cat_ortho_sq
+        diff = ri_cat_original_sq.loc[ri_cat_ortho_sq.index, :] - ri_cat_ortho_sq
 
         # Creating a copy of ri_cat_ortho squared that will be modified to obtain the final result for this method
-        result_per_method = ri_cat_ortho_sq.copy(deep=True)
+        result_per_method = ri_cat_original_sq.copy(deep=True)
 
         # Looping on ordered categories
         for category in ordered_categories:
-            correlated_categories = correlation_matrix.loc[:, category] != 0
+            correlated_categories = correlation_matrix.loc[:, correlation_matrix.loc[:, category] != 0].columns
 
-            correlated_categories_ri = ri_cat_original_sq.loc[correlated_categories]
+            correlated_categories_ri = ri_cat_original_sq.loc[correlated_categories, :]
 
             # Looping on lcis
             for lci in standardized_lcis.columns:
-                result_per_method.loc[category, lci] += diff[category, lci] * \
-                                                        (correlated_categories_ri /
-                                                         correlated_categories_ri.sum(axis=0)).loc[category,
-                                                                                                   lci]
+                result_per_method.loc[correlated_categories, lci] -= diff.loc[category, lci] * \
+                                                                     (correlated_categories_ri.loc[:, lci] /
+                                                                      correlated_categories_ri.loc[:, lci].sum(axis=0))
         # Appending the result per method to the final result
-        result.append(result_per_method)
+        result = result.append(result_per_method.loc[category_names, :])
+
+    result = result.applymap(np.sqrt)
 
     return result
