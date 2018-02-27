@@ -32,7 +32,7 @@ def compartment_coords(lci, compartments, new_names=None):
     if new_names is None:
         new_names = compartments
     elif len(new_names) != len(compartments):
-        raise Exception("New names number doesn't match compartments number")
+        raise Exception("New names number doesn't match compartments number.")
 
     # Initializing compartment_dict
     compartment_dict = dict()

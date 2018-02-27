@@ -54,7 +54,7 @@ def orthonormation_method(standardized_methods_cleaned):
 
     categories = method_standardized_ortho.columns.tolist()
 
-    # normation of the first category
+    # Normation of the first category
     method_standardized_ortho[categories[0]] = method_standardized_ortho[categories[0]] / \
                                                linalg.norm(method_standardized_ortho[categories[0]])
 
@@ -69,7 +69,7 @@ def orthonormation_method(standardized_methods_cleaned):
                         sum(method_standardized_ortho[categories[i]] * method_standardized_ortho[categories[j]]) /
                         sum(method_standardized_ortho[categories[i]] * method_standardized_ortho[categories[i]]))
             if linalg.norm(method_standardized_ortho[categories[j]]) == 0:
-                # If after the projection, the j columns is null, it is droped (i.e it is linearly dependant with
+                # If after the projection, if the j columns is null it is droped (i.e it is linearly dependant with
                 # the other columns) and the inner loop stops
                 method_standardized_ortho.drop(method_standardized_ortho.columns[j], inplace=True, axis=1)
                 categories.remove(categories[j])
@@ -90,8 +90,8 @@ def filter_methods(standardized_methods, methods_to_filter):
     Filters a standardized methods DataFrame on methods name
 
     :param pd.DataFrame standardized_methods:
-        Dataframe constituted one or many method(s) aggregated, ie. constituted of several columns representing impact
-        categories normalized
+        Dataframe constituted by one or many method(s) aggregated, ie. constituted of several columns representing
+        impact categories normalized
     :param iterable or str methods_to_filter:
         Names of the methods to filter
     :return: Filtered methods
