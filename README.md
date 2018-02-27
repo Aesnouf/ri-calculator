@@ -9,16 +9,18 @@ RIs from orthogonalized impact categories are also calculated to avoid over/unde
 
 **Usage**
 
-*RI_Calculator.py* is the main script where directories and excel LCI names have to be specified. 
-Running this program will use the different python modules supplied in the package.
+*RI_Calculator.py* is the main script where directories and excel LCI names have to be specified by the user . 
+Running this script will use the different python modules supplied in the package. Needed external python packages are listed in requirements.txt.
+
+The generated RIs results are stored as excel file in the second specified directory.
+
+**Implementation**
 
 Using *lci_formatting.py*, LCIs are formatted (to modify their format from the simapro export format) and standardized with the geometric means of the ecoinvent 3.1 dimensions.
 The impact category RIs are then determined (*ri_calculation.py*).
 
 To obtain the LCIA method RIs, methods have to be formatted to organize and orthogonalize them (*method_formatting.py*).
 Then, RIs of LCIA methods are determined (*ri_calculation.py*).
-
-The generated RIs results are stored as excel file in the second specified directory.
 
 **Reference:**
 Esnouf, A et al. _Representativeness of environmental impact assessmentmethods regarding Life Cycle Inventories_,
